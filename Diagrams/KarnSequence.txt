@@ -1,0 +1,35 @@
+actor User
+participant "Order System" as OrderSystem
+participant "Refund System" as RefundSystem
+participant "Payment System" as PaymentSystem
+participant "CheckIn System" as CheckInSystem
+participant "Staff" as Staff
+
+== ผู้ใช้ขอคืนเงิน ==
+User -> OrderSystem: requestRefund(orderID)
+OrderSystem -> RefundSystem: validateRefund(orderID)
+RefundSystem -> OrderSystem: checkEventDate(orderID)
+OrderSystem --> RefundSystem: return eligibility status
+
+== ตรวจสอบว่าตั๋วถูก Check-In แล้วหรือไม่ ==
+RefundSystem -> CheckInSystem: verifyTicket(ticketID)
+CheckInSystem --> RefundSystem: return isCheckedIn status
+RefundSystem -> User: denyRefundIfCheckedIn
+
+== อนุมัติการคืนเงิน ==
+RefundSystem -> PaymentSystem: processRefund(orderID, refundAmount)
+PaymentSystem --> RefundSystem: refundProcessed
+RefundSystem --> User: confirmRefundApproved
+
+== อนุมัติการคืนเงินพิเศษโดย Staff ==
+User -> Staff: requestSpecialRefund(orderID)
+Staff -> RefundSystem: approveSpecialRefund(staffID, orderID)
+RefundSystem -> PaymentSystem: processRefund(orderID, refundAmount)
+PaymentSystem --> RefundSystem: refundProcessed
+RefundSystem --> User: confirmSpecialRefundApproved
+
+== รองรับการคืนเงินบางส่วน ==
+User -> RefundSystem: requestPartialRefund(orderID, partialAmount)
+RefundSystem -> PaymentSystem: processPartialRefund(orderID, partialAmount)
+PaymentSystem --> RefundSystem: partialRefundProcessed
+RefundSystem --> User: confirmPartialRefundApproved

@@ -1,0 +1,48 @@
+sequenceDiagram
+    actor User
+    participant Controller
+    participant EventOrganizer
+    participant Order
+    participant Ticket
+    participant Payment
+    participant Refund
+    participant CheckInSystem
+    participant Zone
+    participant Staff
+
+    User ->> Controller: browseEvents()
+    Controller ->> EventOrganizer: getEventList()
+    EventOrganizer -->> Controller: return EventList
+    Controller -->> User: display EventList
+
+    User ->> Controller: selectZone(eventID, zoneID)
+    Controller ->> Zone: checkAvailability(eventID, zoneID)
+    Zone -->> Controller: return availableSeats
+    Controller -->> User: displayAvailableSeats
+
+    User ->> Controller: buyTicket(eventID, zoneID)
+    Controller ->> Order: createOrder(userID, eventID, zoneID)
+    Order -->> Controller: return Order
+    Controller ->> Ticket: generateTicket(eventID, zoneID)
+    Ticket -->> Controller: return Ticket
+
+    User ->> Controller: makePayment(orderID)
+    Controller ->> Payment: processPayment(orderID)
+    Payment -->> Controller: return paymentStatus
+
+    alt Payment Success
+        Controller ->> Ticket: updateTicketStatus(orderID)
+        Ticket -->> Controller: return updatedTicket
+        Controller -->> User: confirmTicketPurchase
+    else Payment Failure
+        Controller -->> User: notifyPaymentFailure
+    end
+
+    User ->> Controller: viewOrderHistory()
+    Controller ->> Order: getOrderHistory(userID)
+    Order -->> Controller: return OrderHistory
+    Controller -->> User: display OrderHistory
+
+    Staff ->> CheckInSystem: manageCheckIn(ticketID)
+    CheckInSystem -->> Staff: checkInStatus
+    Staff -->> User: notifyCheckInStatus

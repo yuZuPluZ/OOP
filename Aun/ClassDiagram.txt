@@ -1,0 +1,222 @@
+classDiagram
+    class Controller {
+        - account_List[]: Account
+        + add_account(account: Account)
+        + getAccountList(): Account[]
+        + handleUserRequest(userID: int): void
+    }
+
+    %% Superclass
+    class Account {
+        - accountID: int
+        - name: string
+        - email: string
+        - password: string
+        + login(username: string, password: string): bool
+        + logout(): void
+        + updateProfile(name: string, email: string): void
+    }
+
+    %% Subclasses
+    class User {
+        - Order_List[]: Order
+        + browseEvents(): Event[]
+        + buyTicket(eventID: int, seatID: int): Ticket
+        + viewOrderHistory(): Order[]
+        + cancelOrder(orderID: int): bool
+        + requestRefund(orderID: int): Refund
+        + requestReEntry(ticketID: int): bool
+        + requestPartialRefund(orderID: int, partialAmount: float): Refund
+    }
+    
+    class EventOrganizer {
+        - Event_List[]: Event
+        + createEvent(title: string, date: DateTime, location: string, hallID: int): Event
+        + editEvent(eventID: int, newDetails: Event): bool
+        + publishEvent(eventID: int): bool
+        + manageTickets(eventID: int): Ticket[]
+        + viewSalesReport(eventID: int): string
+        + viewTicketBuyers(eventID: int): User[]
+    }
+
+    class Staff {
+        - staffID: int
+        - role: string
+        + checkIn(userID: int, ticketID: int): int
+        + verifyTicket(ticketID: int): bool
+        + allowReEntry(ticketID: int): bool
+        + assignRole(staffID: int, role: string): void
+        + approveSpecialRefund(staffID: int, orderID: int): bool
+    }
+
+    %% Hall System
+    class Hall {
+        - hallID: int
+        - name: string
+        - size: string
+        - maxCapacity: int
+        + getHallDetails(): string
+        + isAvailable(date: DateTime): bool
+        + checkHallCapacity(eventID: int): bool
+    }
+
+    class Zone {
+        - zoneID: int
+        - hallID: int
+        - name: string
+        - maxSeats: int
+        - reservedSeats: int
+        - availableSeats: int
+        + checkAvailability(): bool
+        + bookSeat(seatID: int): bool
+        + getZoneDetails(): string
+    }
+
+    class Seat {
+        - seatID: int
+        - zoneID: int
+        - row: string
+        - number: int
+        - isReserved: bool
+        + reserveSeat(): bool
+        + releaseSeat(): void
+        + getSeatDetails(): string
+        + verifySeatAssignment(seatID: int): bool
+    }
+
+    %% Event Management
+    class Event {
+        - eventID: int
+        - title: string
+        - date: DateTime
+        - location: string
+        - hallID: int
+        + createEvent(): Event
+        + editEvent(): bool
+        + publishEvent(): bool
+        + isOngoing(): bool
+        + getEventDetails(): string
+    }
+
+    class Concert {
+        - artist: string
+        - genre: string
+        + scheduleConcert(): void
+        + sellTickets(): Ticket[]
+    }
+
+    class Conference {
+        - speakers: string
+        - topic: string
+        + organizeConference(): void
+        + manageSessions(): void
+    }
+
+    class Workshop {
+        - instructor: string
+        - topic: string
+        + scheduleWorkshop(): void
+        + manageParticipants(): void
+    }
+
+    class Sports {
+        - sportType: string
+        - teamsOrPlayers: string
+        + organizeMatch(): void
+        + manageParticipants(): void
+    }
+
+    class Ticket {
+        - ticketID: int
+        - eventID: int
+        - type: string
+        - price: float
+        - zoneID: int
+        - isCheckedIn: bool
+        - code: string
+        - checkInTime: DateTime
+        + generateETicket(): void
+        + cancelTicket(): bool
+        + checkTicketStatus(): string
+        + validateTicket(ticketID: int): bool
+    }
+
+    %% Order and Payment
+    class Order {
+        - orderID: int
+        - userID: int
+        - ticket_list[]: Ticket
+        + placeOrder(): bool
+        + getTicket(): Ticket[]
+        + cancelOrder(): bool
+        + requestRefund(): Refund
+        + requestPartialRefund(partialAmount: float): Refund
+        + getOrderDetails(): string
+    }
+
+    class Payment {
+        - paymentID: int
+        - orderID: int
+        - amount: float
+        - paymentMethod: string
+        + processPayment(): bool
+        + confirmPaymentStatus(): bool
+        + getPaymentDetails(): string
+        + processRefund(orderID: int, refundAmount: float): bool
+        + processPartialRefund(orderID: int, partialAmount: float): bool
+    }
+
+    class Refund {
+        - refundID: int
+        - orderID: int
+        - refundAmount: float
+        - refundStatus: string
+        + requestRefund(): void
+        + approveRefund(): bool
+        + approveSpecialRefund(): bool
+        + checkEventDate(): DateTime
+        + getRefundStatus(): string
+    }
+
+    class CheckInSystem {
+        - checkedInSeats: list
+        + checkIn(userID: int, ticketID: int, staffID: int): int
+        + allowReEntry(ticketID: int): bool
+        + verifyTicket(ticketID: int): bool
+        + getCheckInStats(eventID: int): int
+        + validateSeatAssignment(seatID: int): bool
+    }
+
+    class Analytics {
+        + getSalesReport(eventID: int): string
+        + getCheckInStats(eventID: int): int
+    }
+
+    %% Relationships
+    Controller o-- Account
+    Account <|-- User
+    Account <|-- EventOrganizer
+    Account <|-- Staff
+
+    EventOrganizer "1" --o "many" Event : creates
+    Event <|-- Concert
+    Event <|-- Conference
+    Event <|-- Workshop
+    Event <|-- Sports
+
+    Event "1" o-- "1" Hall : heldIn
+    Event "1" o-- "many" Zone : uses
+    Hall "1" o-- "many" Zone : has
+    Zone "1" o-- "many" Seat : contains
+    Ticket "many" --o "1" Zone : belongsTo
+
+    Event "1" o-- "many" Ticket : has
+    User "1" o-- "many" Order : places
+    Order "1" o-- "many" Ticket : contains
+    Order "1" --> "1" Payment : makes
+    Order "1" --> "1" Refund : mayHave
+    Refund "1" --> "1" Payment : refunds
+
+    Staff "1" --> "many" CheckInSystem : manages
+    Ticket "1" --> "1" CheckInSystem : verifiedBy
+    Event "1" --> "1" Analytics : reports

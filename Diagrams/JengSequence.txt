@@ -1,0 +1,44 @@
+sequenceDiagram
+    actor User
+    actor Staff
+    participant CheckInSystem
+    participant Ticket
+    participant Seat
+
+    User->>Staff: Presents ticket (ticketID)
+    Staff->>CheckInSystem: Verify ticket (ticketID)
+    CheckInSystem->>Ticket: Validate ticket (isCheckedIn, eventID, zoneID)
+    Ticket-->>CheckInSystem: Return validation result
+
+    alt Ticket is valid and not checked-in
+        CheckInSystem->>Seat: Verify assigned seat (seatID, zoneID)
+        alt Seat is available
+            CheckInSystem->>Staff: Ticket and seat valid
+            Staff->>CheckInSystem: Confirm check-in
+            CheckInSystem->>Ticket: Update ticket status (isCheckedIn = true)
+            CheckInSystem->>Seat: Reserve seat (reserveSeat())
+            Ticket-->>CheckInSystem: Ticket updated
+            Seat-->>CheckInSystem: Seat updated
+            CheckInSystem->>Staff: Check-in successful
+            Staff->>User: Check-in confirmed
+        else Seat is already occupied
+            CheckInSystem->>Staff: Seat already occupied, check-in denied
+            Staff->>User: Check-in denied
+        end
+    else Ticket is invalid or already checked-in
+        CheckInSystem->>Staff: Ticket invalid or already checked-in
+        Staff->>User: Check-in denied
+    end
+
+    == Re-Entry Process ==
+    User->>Staff: Requests re-entry (ticketID)
+    Staff->>CheckInSystem: Verify re-entry (ticketID)
+    CheckInSystem->>Ticket: Check ticket status (isCheckedIn)
+    alt Ticket is checked-in
+        CheckInSystem->>Seat: Validate seat assignment (seatID)
+        CheckInSystem->>Staff: Allow re-entry
+        Staff->>User: Re-entry granted
+    else Ticket is not checked-in
+        CheckInSystem->>Staff: Re-entry denied
+        Staff->>User: Re-entry denied
+    end

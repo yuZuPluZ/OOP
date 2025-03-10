@@ -1,0 +1,67 @@
+sequenceDiagram
+    actor Organizer as Organizer
+    participant Controller as Controller
+    Organizer ->> Controller: Create event
+    activate Controller
+    create participant Event
+    participant Hall as Hall
+    Controller ->> Event: create_event(Event)
+    activate Event
+    Event -->> Controller: return Event
+    Controller -->> Organizer: return Event
+
+    Organizer ->> Controller: Request current event detail
+    loop get event detail
+    Controller ->> Event: get_all_event_details()
+    Event -->> Controller: return event_details
+    end
+    Controller -->> Organizer: return event_details[]
+
+    Organizer ->> Controller: Request hall detail
+    loop get hall details
+    Controller ->> Hall: get_all_hall_details()
+    activate Hall
+    Hall -->> Controller: return hall_details
+    deactivate Hall
+    end
+    Controller -->> Organizer: return hall_details[]
+
+    
+    Organizer ->> Controller: Linking Event and Hall
+    Controller ->> Event: link_hall(Event, Hall)
+    alt Successful Link
+    Event ->> Hall: hall.status = "Occupied"
+    activate Hall
+    Hall ->> Event: Event.hall = hall
+    deactivate Hall
+    Event -->> Controller: return Done
+    Controller -->> Organizer: return Done
+    else Error Condition
+    Event -->> Controller: return Error
+    Controller -->> Organizer: return Error
+    end
+
+    Organizer ->> Controller: Unlinking Event and Hall
+    Controller ->> Event: unlink_hall(Event, Hall)
+    alt Successful Unlink
+    Event ->> Hall: hall.status = None
+    activate Hall
+    Hall ->> Event: Event.hall = None
+    deactivate Hall
+    Event -->> Controller: return Done
+    Controller -->> Organizer: return Done
+    else Error Condition
+    Event -->> Controller: return Error
+    Controller -->> Organizer: return Error
+    end
+
+    Organizer ->> Controller: Delete event
+    Controller ->> Event: delete_event(Event)
+    Event ->> Hall: hall.status = None
+    activate Hall
+    Hall ->> Event: Event.hall = None
+    deactivate Hall
+    Controller --x Event: deleted event
+    deactivate Event
+    Controller -->> Organizer: return deleted event
+    deactivate Controller

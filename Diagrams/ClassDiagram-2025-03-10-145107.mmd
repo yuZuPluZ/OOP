@@ -1,0 +1,109 @@
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +string role
+    }
+
+    class EventOrganizer {
+        +List<Event> events
+    }
+    User <|-- EventOrganizer
+
+    class Buyer {
+        +List<Ticket> tickets
+        +List<Order> orders
+    }
+    User <|-- Buyer
+
+    class Event {
+        +int id
+        +string name
+        +datetime date
+        +EventOrganizer organizer
+        +Hall hall
+        +Dict<str, Zone> zones
+    }
+
+    class Hall {
+        +int id
+        +string size
+        +int capacity
+    }
+
+    class Zone {
+        +string type // VIP or Regular
+        +int capacity
+        +float price
+        +List<Ticket> tickets
+        +List<Ticket> get_available_tickets(int quantity)
+    }
+    Event --> Zone
+
+    class Ticket {
+        +int id
+        +Zone zone
+        +Buyer buyer
+        +TicketStatus status
+        +bool purchase(Buyer buyer)
+        +bool refund()
+    }
+    Zone --> Ticket
+    Buyer --> Ticket
+
+    class Order {
+        +int id
+        +Buyer buyer
+        +List<Ticket> tickets
+        +float total_price
+        +OrderStatus status
+        +bool complete_order()
+        +bool cancel_order()
+    }
+    Buyer --> Order
+
+    class Payment {
+        +int id
+        +Order order
+        +float amount
+        +PaymentStatus status
+        +bool process_payment(bool success)
+    }
+    Order --> Payment
+
+    class RefundRequest {
+        +int id
+        +Ticket ticket
+        +Buyer buyer
+        +RefundStatus status
+        +float refund_amount
+        +bool approve_refund()
+        +bool reject_refund()
+    }
+    Ticket --> RefundRequest
+    Buyer --> RefundRequest
+
+    class TicketStatus {
+        AVAILABLE
+        SOLD
+        REFUNDED
+    }
+
+    class OrderStatus {
+        PENDING
+        COMPLETED
+        CANCELED
+    }
+
+    class PaymentStatus {
+        PENDING
+        COMPLETED
+        FAILED
+    }
+
+    class RefundStatus {
+        PENDING
+        APPROVED
+        REJECTED
+    }
